@@ -1,0 +1,417 @@
+swagger: '2.0'
+info:
+  title: ITEnabler Gateway API
+  description: Provide a common API to manage your documents across multiple repositories at BNC.
+  version: 1.0.0
+host: api.itenabler.ecm.bnc.com
+schemes:
+  - https
+basePath: /v1/api/
+consumes:
+  - application/json
+  - multipart/form-data
+  - application/octet-stream
+produces:
+  - application/json
+paths:
+  /create:
+    post:
+      summary: Create a document in the backend respository.
+      description: |
+          Create a document in the backend respository based on client provided ViewId. Client has to send mendatory  properties and file content
+      parameters:
+        - name: viewId
+          in: header
+          description: Application view Id.
+          required: true
+          type: string
+          format: string
+        - name: messageId
+          in: header
+          description: Application message Id.
+          required: true
+          type: string
+          format: string
+        - name: appId
+          in: header
+          description: Application ID.
+          required: true
+          type: string
+          format: string
+        - name: userId
+          in: header
+          description: User ID.
+          required: true
+          type: string
+          format: string
+        - name: file
+          in: formData
+          description: Document File.
+          required: true
+          type: file
+        - name: body 
+          in: formData
+          description: contains create request '#/definitions/ClientCreateRequest'
+          required: true
+          type: file 
+      tags:
+        - Create
+      responses:
+        '200':
+          description: 'docId, document ID'
+        '400':
+          description: Bad Request, global error. Code ERR_CMN_TE_02
+          schema:
+            $ref: '#/definitions/ResponseError'
+        '404':
+          description: Not found, global error. Code ERR_CMN_TE_03
+          schema:
+            $ref: '#/definitions/ResponseError'
+        '412':
+           description:  Gateway mapping issue , Code ERR_CRE_TE_07
+           schema:
+            $ref: '#/definitions/ResponseError'    
+        '417':
+           description: Gateway config issue, Code ERR_CRE_TE_01 , ERR_CRE_TE_02, ERR_CRE_TE_08, ERR_CRE_TE_09 , ERR_CRE_TE_10,ERR_HDR_TE_01, ERR_HDR_TE_02 
+           schema:
+            $ref: '#/definitions/ResponseError'
+        '422':
+          description: Client issue, Required metadata missing, Code ERR_CRE_TE_04 
+          schema:
+            $ref: '#/definitions/ResponseError'
+        '428':
+          description: Client issue, clinet request missing meta data, Code ERR_CRE_TE_03 
+          schema:
+            $ref: '#/definitions/ResponseError'
+        '500':
+          description: Internal Server Error, global error. Code ERR_CRE_TE_06
+          schema:
+            $ref: '#/definitions/ResponseError'
+        '502':
+          description: Gateway Error, routing issue. Code ERR_CRE_TE_06
+          schema:
+            $ref: '#/definitions/ResponseError'
+        default:
+          description: 500 Internal Server Error, global error. Code ERR_CMN_TE_04
+          schema:
+            $ref: '#/definitions/ResponseError'
+  /search:
+    post:
+      summary: Search documents in repositories based on client search request.
+      description: >
+        Search documents based on client criteria and sort order. Support pagination as well.
+
+      parameters:
+        - name: viewId
+          in: header
+          description: Application view Id.
+          required: true
+          type: string
+          format: string
+        - name: messageId
+          in: header
+          description: Application message Id.
+          required: true
+          type: string
+          format: string
+        - name: appId
+          in: header
+          description: Application ID.
+          required: true
+          type: string
+          format: string
+        - name: userId
+          in: header
+          description: User ID.
+          required: true
+          type: string
+          format: string
+        - name: searchRequest 
+          in: body
+          description: contains search object
+          required: true
+          schema:
+            $ref: '#/definitions/SearchRequest'
+      tags:
+        - Search
+      responses:
+        '200':
+          description: An array of document and there properties and search infos
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/SearchResponse'
+        '400':
+          description: Bad Request, global error. Code ERR_CMN_TE_02
+          schema:
+            $ref: '#/definitions/ResponseError'
+        '404':
+          description: Not found, global error. Code ERR_CMN_TE_03
+          schema:
+            $ref: '#/definitions/ResponseError'
+        '412':
+           description:  Gateway issue , Code ERR_SER_TE_06
+           schema:
+            $ref: '#/definitions/ResponseError' 
+        '417':
+           description: Gateway config issue, Code ERR_SER_TE_01 , ERR_SER_TE_02, ERR_CRE_TE_07,ERR_HDR_TE_01, ERR_HDR_TE_02
+           schema:
+            $ref: '#/definitions/ResponseError'
+        '428':
+          description: Client issue, clinet request is null, Code ERR_SER_TE_03 
+          schema:
+            $ref: '#/definitions/ResponseError'
+        '500':
+          description: 500 Internal Server Error, global error. Code ERR_CMN_TE_04
+          schema:
+            $ref: '#/definitions/ResponseError'
+        '502':
+          description: Gateway Error, routing issue. Code ERR_SER_TE_05
+          schema:
+            $ref: '#/definitions/ResponseError'
+        default:
+          description: 500 Internal Server Error, global error. Code ERR_CMN_TE_04
+          schema:
+            $ref: '#/definitions/ResponseError'
+  /get:
+    get:
+      summary: Get content document
+      description: >-
+        Get the document by unique ID
+      parameters:
+        - name: level1
+          in: header
+          description: FileNet objectStore.
+          required: true
+          type: string
+          format: string
+        - name: messageId
+          in: header
+          description: Application message Id.
+          required: true
+          type: string
+          format: string
+        - name: appId
+          in: header
+          description: Application ID.
+          required: true
+          type: string
+          format: string
+        - name: userId
+          in: header
+          description: User ID.
+          required: true
+          type: string
+          format: string
+        - name: businessViewName
+          in: header
+          description: Business View Name.
+          required: false
+          type: string
+          format: string
+        - name: docId
+          in: query
+          description: Document ID.
+          required: true
+          type: string
+          format: string
+      tags:
+        - Get
+      responses:
+        '200':
+          description: content document
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/ResponseError'
+  /update:
+    put:
+      summary: Update document properties
+      description: >-
+        Update metadata of document
+      parameters:
+        - name: viewId
+          in: header
+          description: Application view Id.
+          required: true
+          type: string
+          format: string
+        - name: messageId
+          in: header
+          description: Application message Id.
+          required: true
+          type: string
+          format: string
+        - name: appId
+          in: header
+          description: Application ID.
+          required: true
+          type: string
+          format: string
+        - name: userId
+          in: header
+          description: User ID.
+          required: true
+          type: string
+          format: string
+        - name: updateRequest 
+          in: body
+          description: contains update object info
+          required: true
+          schema:
+            $ref: '#/definitions/CreateUpdateRequest'
+      tags:
+        - Update
+      responses:
+        '200':
+          description: Document is update
+          schema:
+            $ref: '#/definitions/CreateUpdateRequest'
+        '400':
+          description: Bad Request, global error. Code ERR_CMN_TE_02
+          schema:
+            $ref: '#/definitions/ResponseError'
+        '404':
+          description: Not found, global error. Code ERR_CMN_TE_03
+          schema:
+            $ref: '#/definitions/ResponseError'
+        '412':
+           description:  Gateway mapping issue , Code ERR_CRE_TE_07
+           schema:
+            $ref: '#/definitions/ResponseError'    
+        '417':
+           description: Gateway config issue, Code ERR_CRE_TE_01 , ERR_CRE_TE_02, ERR_CRE_TE_06,ERR_HDR_TE_01, ERR_HDR_TE_02
+           schema:
+            $ref: '#/definitions/ResponseError'
+        '422':
+          description: Client issue, Required metadata missing, Code ERR_CRE_TE_04 
+          schema:
+            $ref: '#/definitions/ResponseError'
+        '428':
+          description: Client issue, clinet request missing meta data, Code ERR_CRE_TE_03 
+          schema:
+            $ref: '#/definitions/ResponseError'
+        '500':
+          description: Internal Server Error, global error. Code ERR_CRE_TE_06
+          schema:
+            $ref: '#/definitions/ResponseError'
+        '502':
+          description: Gateway Error, routing issue. Code ERR_CRE_TE_06
+          schema:
+            $ref: '#/definitions/ResponseError'
+        default:
+          description: 500 Internal Server Error, global error. Code ERR_CMN_TE_04
+          schema:
+            $ref: '#/definitions/ResponseError'
+definitions:
+  Property:
+    type: object
+    properties:
+      name:
+        type: string
+        description: property name
+      type:
+        type: string
+        description: property type
+      value:
+        type: string
+        description: property value object
+  CreateUpdateRequest: 
+    type: object
+    properties:
+      docId:
+        type: string
+      properties:
+        type: array
+        items:
+          $ref: '#/definitions/Property'
+  ClientCreateRequest:
+    type: object
+    properties:
+      properties:
+        type: array
+        items:
+          $ref: '#/definitions/Property'
+  CriteriaMapping:
+    type: object
+    properties:
+        propertyName:
+          type: string
+          description: property Name
+        propertyValue:
+          type: string
+          description: property Value
+        propertyType:
+          type: string
+          description: property Type
+        orderNumber:
+          type: integer
+          description: order Number
+  SelectionCriteria:
+    type: object
+    properties:
+      query:
+          type: string
+          description: query where clause (DateCreated > %1S) and Id = '%2S'
+      criteriaMapping:
+        type: array
+        items:
+          $ref: '#/definitions/CriteriaMapping'
+  Sort:
+    type: object
+    properties:
+      value:
+        type: string
+      directionCd:
+        type: string      
+  SearchRequest:
+    type: object
+    properties:
+      selectionCriteria:
+          $ref: '#/definitions/SelectionCriteria'
+      sort:
+          $ref: '#/definitions/Sort'
+      pageSize:
+        type: string
+      pageNumber:
+        type: string
+      versionning:
+        type: string
+  DocumentBo:
+    type: object
+    properties:
+      propeties:
+        type: array
+        items:
+          $ref: '#/definitions/Property'
+      docId:
+        type: string
+  SearchInfosResponse:
+    type: object
+    properties:
+      pageSize:
+        type: string
+      currentPage:
+        type: string
+      totalPage:
+        type: string
+      totalItem:
+        type: string
+  SearchResponse:
+    type: object
+    properties:
+      documents:
+          $ref: '#/definitions/DocumentBo'
+      searchInfos:
+          $ref: '#/definitions/SearchInfosResponse'
+  ResponseError:
+    type: object
+    properties:
+      codeError:
+        type: string
+      messageError:
+        type: string
+      typeError:
+        type: string
+      detailsError:
+        type: string
